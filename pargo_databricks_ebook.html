@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Pargo Parcels · Databricks Medallion Platform — Technical Ebook</title>
+<style>
+/* ── Print ── */
+@page{size:A4;margin:2.5cm 2cm}
+@media print{
+  nav,.toc-sidebar,.no-print{display:none!important}
+  body{font-size:11pt;line-height:1.7}
+  .page-break{page-break-before:always}
+  .chapter{border:none;box-shadow:none;margin:0;padding:0}
+  h1{font-size:26pt} h2{font-size:18pt} h3{font-size:13pt}
+  pre,code{font-size:9pt}
+  .cover{height:auto;min-height:0;page-break-after:always}
+}
+
+:root{
+  --ink:#1A1F2E;--paper:#FFFFFF;--muted:#6B7280;--accent:#2563EB;
+  --green:#059669;--amber:#D97706;--purple:#7C3AED;--red:#DC2626;
+  --teal:#0891B2;--border:#E5E7EB;--light:#F9FAFB;--mark:#EFF6FF;
+  --amber-light:#FFFBEB;--green-light:#ECFDF5;--purple-light:#F5F3FF;
+  --red-light:#FEF2F2;--code-bg:#F3F4F6;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:Georgia,'Times New Roman',serif;
+  background:#F0F2F5;color:var(--ink);
+  line-height:1.8;font-size:16px;
+}
+
+/* ── TOC sidebar ── */
+.toc-sidebar{
+  position:fixed;top:0;left:0;width:260px;height:100vh;
+  background:#1E2433;overflow-y:auto;z-index:100;
+  display:flex;flex-direction:column;
+  transition:transform .3s;
+}
+.toc-sidebar::-webkit-scrollbar{width:4px}
+.toc-sidebar::-webkit-scrollbar-thumb{background:#374151;border-radius:2px}
+.toc-header{padding:1.5rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.08)}
+.toc-title{color:#F9FAFB;font-size:.85rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.toc-sub{color:#9CA3AF;font-size:.72rem;margin-top:.25rem}
+.toc-nav{flex:1;padding:1rem 0}
+.toc-nav a{
+  display:block;padding:.45rem 1.25rem;color:#9CA3AF;text-decoration:none;
+  font-family:'Segoe UI',system-ui,sans-serif;font-size:.78rem;line-height:1.4;
+  transition:color .2s,background .2s;border-left:2px solid transparent;
+}
+.toc-nav a:hover,.toc-nav a.active{color:#F9FAFB;background:rgba(255,255,255,.05);border-left-color:#2563EB}
+.toc-nav .toc-ch{color:#6B7280;font-size:.7rem;text-transform:uppercase;
+                  letter-spacing:.1em;padding:.75rem 1.25rem .25rem;font-family:'Segoe UI',system-ui,sans-serif}
+.toc-badge{float:right;background:rgba(37,99,235,.3);color:#93C5FD;padding:.1rem .4rem;
+           border-radius:4px;font-size:.65rem;font-weight:700;font-family:'Segoe UI',system-ui,sans-serif}
+@media(max-width:900px){.toc-sidebar{transform:translateX(-100%)}}
+
+/* ── Main content ── */
+main{margin-left:260px;min-height:100vh}
+@media(max-width:900px){main{margin-left:0}}
+
+/* ── Cover ── */
+.cover{
+  min-height:100vh;display:flex;flex-direction:column;justify-content:center;
+  background:linear-gradient(150deg,#0F1724 0%,#1A2744 50%,#0F1724 100%);
+  color:#F9FAFB;padding:4rem 3rem;position:relative;overflow:hidden;
+}
+.cover::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 70% 60% at 30% 40%,rgba(37,99,235,.2) 0%,transparent 70%),
+             radial-gradient(ellipse 40% 40% at 80% 70%,rgba(124,58,237,.15) 0%,transparent 60%);
+}
+.cover>*{position:relative}
+.cover-eyebrow{
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:rgba(37,99,235,.2);border:1px solid rgba(37,99,235,.4);
+  color:#93C5FD;padding:.35rem .9rem;border-radius:999px;
+  font-family:'Segoe UI',system-ui,sans-serif;font-size:.8rem;font-weight:600;
+  letter-spacing:.05em;margin-bottom:2rem;
+}
+.cover h1{
+  font-size:clamp(2.5rem,5vw,4rem);font-weight:900;line-height:1.1;
+  margin-bottom:1rem;
+  background:linear-gradient(135deg,#F9FAFB 40%,#93C5FD);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.cover-sub{font-size:1.2rem;color:#9CA3AF;max-width:620px;line-height:1.7;margin-bottom:3rem;
+           font-family:'Segoe UI',system-ui,sans-serif}
+.cover-meta{display:flex;flex-direction:column;gap:.5rem;font-family:'Segoe UI',system-ui,sans-serif}
+.cover-meta span{color:#9CA3AF;font-size:.9rem}
+.cover-meta strong{color:#F9FAFB}
+.cover-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1rem;
+             max-width:560px;margin-top:2.5rem}
+.c-stat{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+        border-radius:10px;padding:1rem;text-align:center;font-family:'Segoe UI',system-ui,sans-serif}
+.c-stat .v{font-size:1.8rem;font-weight:800;line-height:1}
+.c-stat .l{font-size:.7rem;color:#9CA3AF;margin-top:.25rem;text-transform:uppercase;letter-spacing:.05em}
+
+/* ── Chapter wrapper ── */
+.chapter{
+  background:var(--paper);margin:2rem;border-radius:16px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);overflow:hidden;
+}
+.chapter-header{padding:3rem 3rem 2rem;border-bottom:1px solid var(--border)}
+.ch-number{
+  font-family:'Segoe UI',system-ui,sans-serif;font-size:.75rem;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:.5rem;
+}
+.ch-title{font-size:clamp(1.6rem,3vw,2.4rem);font-weight:800;line-height:1.2;color:var(--ink)}
+.ch-subtitle{font-family:'Segoe UI',system-ui,sans-serif;color:var(--muted);
+             font-size:1rem;margin-top:.75rem;max-width:680px;line-height:1.6}
+.ch-stripe{height:4px;margin-bottom:0}
+
+.chapter-body{padding:2.5rem 3rem}
+@media(max-width:600px){
+  .chapter{margin:1rem}
+  .chapter-header,.chapter-body{padding:1.5rem}
+}
+
+/* ── Typography ── */
+h2{font-size:1.5rem;font-weight:800;color:var(--ink);margin:2rem 0 .75rem;line-height:1.3}
+h3{font-size:1.15rem;font-weight:700;color:var(--ink);margin:1.5rem 0 .5rem;font-family:'Segoe UI',system-ui,sans-serif}
+h4{font-size:.95rem;font-weight:700;color:var(--muted);text-transform:uppercase;
+   letter-spacing:.08em;margin:1.25rem 0 .5rem;font-family:'Segoe UI',system-ui,sans-serif}
+p{margin-bottom:1rem;color:var(--ink)}
+p:last-child{margin-bottom:0}
+ul,ol{margin:0 0 1rem 1.5rem;color:var(--ink)}
+li{margin-bottom:.4rem}
+strong{font-weight:700}
+em{font-style:italic;color:var(--muted)}
+code{font-family:'Fira Code','Cascadia Code','Consolas',monospace;font-size:.85em;
+     background:var(--code-bg);padding:.1em .35em;border-radius:4px;color:#DC2626}
+pre{background:#1E2433;border-radius:12px;padding:1.5rem;margin:1.25rem 0;overflow-x:auto;
+    line-height:1.7;border:1px solid rgba(255,255,255,.06)}
+pre code{background:none;color:#E2E8F0;font-size:.85rem;padding:0}
+.kw{color:#7DD3FC} .fn{color:#86EFAC} .cm{color:#6B7280;font-style:italic}
+.st{color:#FCD34D} .nm{color:#FDA4AF} .op{color:#E2E8F0}
+
+/* ── Callouts ── */
+.callout{border-radius:10px;padding:1.25rem 1.5rem;margin:1.25rem 0;
+         border-left:4px solid;display:flex;gap:.85rem;align-items:flex-start}
+.callout-icon{font-size:1.25rem;flex-shrink:0;margin-top:.1rem}
+.callout-body p{margin-bottom:.4rem}
+.callout-body p:last-child{margin-bottom:0}
+.callout-body strong{display:block;margin-bottom:.3rem;font-size:.85rem;text-transform:uppercase;letter-spacing:.05em;font-family:'Segoe UI',system-ui,sans-serif}
+.info{background:var(--mark);border-color:var(--accent)}
+.info .callout-body strong{color:var(--accent)}
+.success{background:var(--green-light);border-color:var(--green)}
+.success .callout-body strong{color:var(--green)}
+.warning{background:var(--amber-light);border-color:var(--amber)}
+.warning .callout-body strong{color:var(--amber)}
+.insight{background:var(--purple-light);border-color:var(--purple)}
+.insight .callout-body strong{color:var(--purple)}
+.danger{background:var(--red-light);border-color:var(--red)}
+.danger .callout-body strong{color:var(--red)}
+
+/* ── Tables ── */
+.data-table{width:100%;border-collapse:collapse;font-family:'Segoe UI',system-ui,sans-serif;
+            font-size:.875rem;margin:1.25rem 0}
+.data-table th{text-align:left;padding:.65rem 1rem;background:#F3F4F6;color:#374151;
+               font-weight:700;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;
+               border-bottom:2px solid var(--border)}
+.data-table td{padding:.65rem 1rem;border-bottom:1px solid var(--border);vertical-align:top}
+.data-table tr:nth-child(even) td{background:#F9FAFB}
+.data-table tr:hover td{background:var(--mark)}
+.tag{display:inline-block;padding:.15rem .5rem;border-radius:4px;font-size:.72rem;font-weight:600;
+     font-family:'Segoe UI',system-ui,sans-serif}
+.tag-b{background:#FEF3C7;color:#92400E}
+.tag-s{background:#DBEAFE;color:#1E40AF}
+.tag-g{background:#D1FAE5;color:#065F46}
+.tag-m{background:#EDE9FE;color:#5B21B6}
+
+/* ── Metric grid ── */
+.metric-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+            gap:1rem;margin:1.25rem 0}
+.mbox{background:var(--light);border:1px solid var(--border);border-radius:10px;
+      padding:1.25rem;text-align:center;font-family:'Segoe UI',system-ui,sans-serif}
+.mbox .v{font-size:2rem;font-weight:800;line-height:1}
+.mbox .l{font-size:.72rem;color:var(--muted);margin-top:.25rem;text-transform:uppercase;letter-spacing:.05em}
+
+/* ── Architecture diagram ── */
+.arch-diagram{display:flex;align-items:stretch;gap:0;margin:1.5rem 0;overflow-x:auto;
+              border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+.arch-layer{flex:1;min-width:160px;padding:1.5rem 1rem;text-align:center;position:relative}
+.arch-layer::after{content:'→';position:absolute;right:-12px;top:50%;transform:translateY(-50%);
+                   z-index:1;font-size:1.2rem;color:#9CA3AF}
+.arch-layer:last-child::after{display:none}
+.arch-layer .icon{font-size:2rem;margin-bottom:.5rem}
+.arch-layer .name{font-weight:800;font-family:'Segoe UI',system-ui,sans-serif;font-size:.9rem}
+.arch-layer .db{font-size:.72rem;margin-top:.35rem;font-family:'Segoe UI',system-ui,sans-serif}
+.al-bronze{background:#FFFBEB} .al-silver{background:#EFF6FF}
+.al-gold{background:#ECFDF5}   .al-ml{background:#F5F3FF}
+
+/* ── Comparison table ── */
+.vs-table{border-radius:12px;overflow:hidden;border:1px solid var(--border);margin:1.25rem 0;
+          font-family:'Segoe UI',system-ui,sans-serif;font-size:.875rem}
+.vs-table .vs-head{display:grid;grid-template-columns:1fr 1fr 1fr;background:#F3F4F6;
+                   font-weight:700;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em}
+.vs-table .vs-row{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid var(--border)}
+.vs-table .vs-row:nth-child(even){background:#F9FAFB}
+.vs-cell{padding:.75rem 1rem;line-height:1.5}
+.vs-head .vs-cell{padding:.65rem 1rem;color:#374151}
+.check{color:var(--green);font-weight:700} .cross{color:var(--red);font-weight:700}
+
+/* ── Code annotation ── */
+.code-block{position:relative;margin:1.25rem 0}
+.code-block .code-title{
+  background:#374151;color:#E2E8F0;padding:.5rem 1rem;font-size:.8rem;
+  font-family:'Segoe UI',system-ui,sans-serif;font-weight:600;
+  border-radius:10px 10px 0 0;display:flex;align-items:center;gap:.5rem
+}
+.code-block .code-title::before{content:'●●●';color:#6B7280;letter-spacing:.15em}
+.code-block pre{border-radius:0 0 10px 10px;margin:0}
+
+/* ── Section divider ── */
+.sec-div{border:none;border-top:1px solid var(--border);margin:2rem 0}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ SIDEBAR TOC ═══════════════════════════════════════ -->
+<nav class="toc-sidebar">
+  <div class="toc-header">
+    <div class="toc-title">Pargo Databricks</div>
+    <div class="toc-sub">Technical Ebook · Full Architecture Guide</div>
+  </div>
+  <div class="toc-nav">
+    <a href="#cover">Cover</a>
+    <div class="toc-ch">Part I — Context</div>
+    <a href="#ch1">1. Executive Summary <span class="toc-badge">START</span></a>
+    <a href="#ch2">2. Why Databricks</a>
+    <div class="toc-ch">Part II — Architecture</div>
+    <a href="#ch3">3. Medallion Pattern</a>
+    <a href="#ch4">4. Bronze Layer</a>
+    <a href="#ch5">5. Silver Layer</a>
+    <a href="#ch6">6. Gold Layer</a>
+    <div class="toc-ch">Part III — ML & Ops</div>
+    <a href="#ch7">7. Machine Learning</a>
+    <a href="#ch8">8. Databricks Workflows</a>
+    <a href="#ch9">9. Business Impact</a>
+    <div class="toc-ch">Appendix</div>
+    <a href="#ch10">A. Code Reference</a>
+    <a href="#ch11">B. Azure vs AWS</a>
+  </div>
+</nav>
+
+<!-- ═══════════════════ MAIN ═══════════════════════════════════════════════ -->
+<main>
+
+<!-- ── COVER ── -->
+<div class="cover" id="cover">
+  <div class="cover-eyebrow">📘 Technical Deep-Dive</div>
+  <h1>Pargo Parcels<br>Databricks Medallion<br>Analytics Platform</h1>
+  <p class="cover-sub">
+    A full production-grade data engineering project: dirty data ingestion,
+    automated cleansing, business aggregations, and machine learning — all running
+    on Databricks Serverless with Delta Lake and MLflow.
+  </p>
+  <div class="cover-stats">
+    <div class="c-stat"><div class="v" style="color:#F59E0B">52K</div><div class="l">Bronze rows</div></div>
+    <div class="c-stat"><div class="v" style="color:#3B82F6">49,999</div><div class="l">Silver clean</div></div>
+    <div class="c-stat"><div class="v" style="color:#10B981">5</div><div class="l">Gold tables</div></div>
+    <div class="c-stat"><div class="v" style="color:#8B5CF6">0.81</div><div class="l">ML AUC</div></div>
+  </div>
+  <div class="cover-meta" style="margin-top:3rem">
+    <span><strong>Author:</strong> Anthony Apollis</span>
+    <span><strong>Role:</strong> Senior Data Engineer &amp; Analytics Specialist</span>
+    <span><strong>Platform:</strong> Databricks Free Edition (AWS Serverless)</span>
+    <span><strong>Stack:</strong> PySpark · Delta Lake · MLflow · XGBoost · Databricks Workflows</span>
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────── Ch 1 ───────────────────── -->
+<div class="chapter" id="ch1">
+  <div class="ch-stripe" style="background:linear-gradient(90deg,#2563EB,#0EA5E9)"></div>
+  <div class="chapter-header">
+    <div class="ch-number">Chapter 1</div>
+    <div class="ch-title">Executive Summary</div>
+    <div class="ch-subtitle">What was built, why it matters, and what a hiring manager should take away in 5 minutes</div>
+  </div>
+  <div class="chapter-body">
+
+    <p><strong>Pargo Parcels</strong> is South Africa's leading parcel locker and pickup point network, enabling e-commerce retailers to offer affordable last-mile delivery at over 4,000 pickup locations. The business generates high volumes of parcel events daily — and suffers a measurable cost each time a parcel is <em>returned to sender</em> (RTS): re-handling, re-delivery scheduling, and customer friction.</p>
+
+    <h2>What was built</h2>
+    <p>This project delivers a <strong>fully automated, serverless data pipeline</strong> on Databricks that takes raw, dirty parcel data through four progressive quality layers — and ends with a machine learning model that predicts, before dispatch, which parcels are at risk of being returned.</p>
+
+    <div class="arch-diagram">
+      <div class="arch-layer al-bronze">
+        <div class="icon">🟠</div>
+        <div class="name" style="color:#D97706">BRONZE</div>
+        <div class="db" style="color:#92400E">Raw ingestion<br>pargo_bronze.*</div>
+      </div>
+      <div class="arch-layer al-silver">
+        <div class="icon">🔵</div>
+        <div class="name" style="color:#1E40AF">SILVER</div>
+        <div class="db" style="color:#1E40AF">Cleaned &amp; typed<br>pargo_silver.*</div>
+      </div>
+      <div class="arch-layer al-gold">
+        <div class="icon">🟢</div>
+        <div class="name" style="color:#065F46">GOLD</div>
+        <div class="db" style="color:#065F46">Business KPIs<br>pargo_gold.*</div>
+      </div>
+      <div class="arch-layer al-ml">
+        <div class="icon">🟣</div>
+        <div class="name" style="color:#5B21B6">ML</div>
+        <div class="db" style="color:#5B21B6">XGBoost predictor<br>MLflow Registry</div>
+      </div>
+    </div>
+
+    <div class="metric-row">
+      <div class="mbox"><div class="v" style="color:#D97706">52,000</div><div class="l">Bronze rows ingested</div></div>
+      <div class="mbox"><div class="v" style="color:#1E40AF">2,001</div><div class="l">Duplicates removed</div></div>
+      <div class="mbox"><div class="v" style="color:#065F46">49,999</div><div class="l">Silver clean records</div></div>
+      <div class="mbox"><div class="v" style="color:#059669">5</div><div class="l">Gold tables created</div></div>
+      <div class="mbox"><div class="v" style="color:#7C3AED">0.81</div><div class="l">ML ROC-AUC</div></div>
+      <div class="mbox"><div class="v" style="color:#DC2626">R45</div><div class="l">Cost per RTS parcel</div></div>
+    </div>
+
+    <h2>Key technical achievements</h2>
+    <ul>
+      <li><strong>ANSI-safe date parsing</strong> — discovered and fixed a Databricks Serverless runtime constraint where <code>to_date()</code> throws on bad values in ANSI mode; replaced with <code>try_to_date()</code> via <code>F.expr()</code>.</li>
+      <li><strong>Ambiguous column resolution</strong> — resolved a PySpark join ambiguity by pre-dropping shared columns from the orders table before the join.</li>
+      <li><strong>Serverless job design</strong> — built a 4-task Workflow without <code>job_clusters</code> — a Databricks Free Edition constraint that took debugging to resolve.</li>
+      <li><strong>Class-imbalanced ML</strong> — handled the ~6% positive rate with <code>scale_pos_weight</code> and threshold tuning to 0.4 for higher recall on the minority class.</li>
+      <li><strong>Full MLflow lifecycle</strong> — autolog + manual metric/figure logging + Model Registry transition to Staging.</li>
+    </ul>
+
+    <div class="callout success">
+      <div class="callout-icon">✅</div>
+      <div class="callout-body">
+        <strong>Hiring manager takeaway</strong>
+        <p>This project demonstrates the complete Databricks engineering loop: ingest → cleanse → aggregate → model → register. It uses the same tools (Delta Lake, MLflow, Serverless, Workflows) used in production Databricks deployments at scale. Every architectural decision is intentional and documented.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────── Ch 2 ───────────────────── -->
+<div class="chapter" id="ch2">
+  <div class="ch-stripe" style="background:linear-gradient(90deg,#7C3AED,#2563EB)"></div>
+  <div class="chapter-header">
+    <div class="ch-number">Chapter 2</div>
+    <div class="ch-title">Why Databricks?</div>
+    <div class="ch-subtitle">Platform selection rationale — and how this compares to Snowflake, AWS Glue, and dbt</div>
+  </div>
+  <div class="chapter-body">
+
+    <p>When selecting a platform for a parcel analytics pipeline with an ML component, the core requirements were: unified compute for both transformations and ML training, a storage format with ACID guarantees and time travel, built-in experiment tracking, serverless execution (cost savings), and a familiar Python-first developer experience.</p>
+
+    <h2>Platform comparison</h2>
+    <div class="vs-table">
+      <div class="vs-head">
+        <div class="vs-cell">Capability</div>
+        <div class="vs-cell" style="color:#2563EB">Databricks ✓</div>
+        <div class="vs-cell" style="color:#6B7280">Snowflake / dbt</div>
+      </div>
+      <div class="vs-row">
+        <div class="vs-cell"><strong>Distributed Python / ML</strong></div>
+        <div class="vs-cell"><span class="check">✓</span> PySpark native, XGBoost on Spark</div>
+        <div class="vs-cell"><span class="cross">✗</span> Snowpark Python limited; no Spark</div>
+      </div>
+      <div class="vs-row">
+        <div class="vs-cell"><strong>Experiment tracking</strong></div>
+        <div class="vs-cell"><span class="check">✓</span> MLflow built-in, zero setup</div>
+        <div class="vs-cell"><span class="cross">✗</span> Requires separate MLflow server</div>
+      </div>
+      <div class="vs-row">
+        <div class="vs-cell"><strong>ACID Delta tables</strong></div>
+        <div class="vs-cell"><span class="check">✓</span> Delta Lake native — MERGE, time travel</div>
+        <div class="vs-cell">Partial — Snowflake has MERGE but no open format</div>
+      </div>
+      <div class="vs-row">
+        <div class="vs-cell"><strong>Serverless compute</strong></div>
+        <div class="vs-cell"><span class="check">✓</span> Serverless jobs, pay-per-second</div>
+        <div class="vs-cell">Snowflake virtual warehouses (per-credit billing)</div>
+      </div>
+      <div class="vs-row">
+        <div class="vs-cell"><strong>Orchestration</strong></div>
+        <div class="vs-cell"><span class="check">✓</span> Databricks Workflows native</div>
+        <div class="vs-cell">Requires Airflow / dbt Cloud / separate tool</div>
+      </div>
+      <div class="vs-row">
+        <div class="vs-cell"><strong>Model registry</strong></div>
+        <div class="vs-cell"><span class="check">✓</span> MLflow Model Registry native</div>
+        <div class="vs-cell"><span class="cross">✗</span> Not available</div>
+      </div>
+      <div class="vs-row">
+        <div class="vs-cell"><strong>Notebook development</strong></div>
+        <div class="vs-cell"><span class="check">✓</span> Interactive, GPU-enabled, inline visualisations</div>
+        <div class="vs-cell">dbt is SQL-only; Snowflake notebooks limited</div>
+      </div>
+    </div>
+
+    <div class="callout insight">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body">
+        <strong>Key insight</strong>
+        <p>Databricks' greatest advantage is <em>unification</em>. Rather than stitching together separate tools for ETL, ML training, experiment tracking, and orchestration, Databricks provides all four natively on the same compute fabric. This reduces operational complexity significantly — there is no data movement between systems, no cross-tool authentication to manage, and no version skew between the transformation layer and the ML layer.</p>
+      </div>
+    </div>
+
+    <h2>Why not dbt?</h2>
+    <p>dbt excels at <strong>SQL-based transformations with version-controlled models and lineage tracking</strong>. It is the right tool when your team works primarily in SQL and needs documented data models with tests. However, this project required:</p>
+    <ul>
+      <li>Complex PySpark transformations (window functions, <code>create_map()</code>, <code>F.expr()</code>) not expressible in SQL</li>
+      <li>Pandas-backed ML training that runs in the same environment as the cleansing step</li>
+      <li>MLflow logging and model registration tightly coupled to the training code</li>
+    </ul>
+    <p>dbt could handle the Gold aggregation layer well, but would require a Python dbt adapter and would not handle the Bronze or ML layers at all — making it a partial solution requiring additional tooling. For Pargo's use case, pure PySpark + Databricks Workflows was the more cohesive choice.</p>
+
+    <h2>Databricks Free Edition constraints navigated</h2>
+    <div class="callout warning">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-body">
+        <strong>Real engineering decision — not a tutorial</strong>
+        <p>The Databricks Free Edition on AWS only supports <strong>serverless compute</strong>. This means Workflow job definitions cannot include a <code>job_clusters</code> key — the API returns HTTP 400 if you do. Traditional compute specs (<code>node_type_id</code>, <code>num_workers</code>) are also not valid. This was discovered and debugged during this project — the fix was to remove all cluster configuration from the job body and rely on the implicit serverless runtime.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────── Ch 3 ───────────────────── -->
+<div class="chapter" id="ch3">
+  <div class="ch-stripe" style="background:linear-gradient(90deg,#D97706,#F59E0B)"></div>
+  <div class="chapter-header">
+    <div class="ch-number">Chapter 3</div>
+    <div class="ch-title">Medallion Architecture</div>
+    <div class="ch-subtitle">Why three layers? What the contract is at each boundary, and how Delta Lake makes it work</div>
+  </div>
+  <div class="chapter-body">
+
+    <p>The <strong>Medallion Architecture</strong> (or Multi-Hop architecture) is a data design pattern popularised by Databricks that organises data into progressive quality layers, each named after a precious metal to indicate increasing refinement.</p>
+
+    <h2>The three-layer data contract</h2>
+    <table class="data-table">
+      <thead><tr><th>Layer</th><th>Database</th><th>Schema enforcement</th><th>Who reads it</th><th>Immutability</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-b">BRONZE</span></td><td><code>pargo_bronze</code></td><td>OFF — accepts anything</td><td>Silver cleansing job only</td><td>Append-only (historical audit)</td></tr>
+        <tr><td><span class="tag tag-s">SILVER</span></td><td><code>pargo_silver</code></td><td>ON — enforced types</td><td>Gold aggregations, ML feature engineering</td><td>Overwrite with dedup</td></tr>
+        <tr><td><span class="tag tag-g">GOLD</span></td><td><code>pargo_gold</code></td><td>ON — typed &amp; aggregated</td><td>Dashboards, reports, analysts, ML scoring</td><td>Full overwrite (idempotent)</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Why not just write clean data directly?</h2>
+    <p>The most common mistake in ETL is combining ingestion and cleansing into a single step. This creates three problems:</p>
+    <ol>
+      <li><strong>No audit trail</strong> — if a cleaning rule is wrong, you cannot trace back to the original value</li>
+      <li><strong>Brittle pipelines</strong> — a new dirty pattern in source data breaks the entire pipeline instead of quarantining the bad rows</li>
+      <li><strong>No partial reruns</strong> — if the Gold step fails after Silver succeeds, you must rerun from the beginning</li>
+    </ol>
+    <p>The medallion pattern solves all three. Bronze is the raw archive. Silver is the clean canonical representation. Gold is the business view. Each layer can fail, be reprocessed, or be modified independently.</p>
+
+    <h2>Why Delta Lake?</h2>
+    <p>Delta Lake is the storage format used across all three layers. It adds four critical capabilities over plain Parquet:</p>
+
+    <table class="data-table">
+      <thead><tr><th>Feature</th><th>What it enables in this project</th></tr></thead>
+      <tbody>
+        <tr><td><strong>ACID transactions</strong></td><td>Concurrent reads/writes to Bronze won't corrupt the table even if a job fails mid-write</td></tr>
+        <tr><td><strong>Schema enforcement</strong></td><td>Silver and Gold reject rows that don't match the defined schema, catching upstream issues early</td></tr>
+        <tr><td><strong>Time travel</strong></td><td><code>SELECT * FROM pargo_silver.parcels VERSION AS OF 3</code> — audit any prior state</td></tr>
+        <tr><td><strong>MERGE / upsert</strong></td><td>Incremental Silver updates can merge new records without full rewrites</td></tr>
+        <tr><td><strong>Z-Ordering / optimize</strong></td><td>Gold tables can be compacted and co-located on <code>created_date</code> for fast dashboard queries</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout info">
+      <div class="callout-icon">ℹ️</div>
+      <div class="callout-body">
+        <strong>Open table format</strong>
+        <p>Delta Lake is an open-source format (Apache 2.0 licence) maintained by the Linux Foundation. The same Delta tables written by Databricks can be read by Trino, Apache Spark, Flink, DuckDB, and more — providing portability that proprietary formats like Snowflake's internal format do not.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────── Ch 4 ───────────────────── -->
+<div class="chapter" id="ch4">
+  <div class="ch-stripe" style="background:linear-gradient(90deg,#D97706,#92400E)"></div>
+  <div class="chapter-header">
+    <div class="ch-number">Chapter 4</div>
+    <div class="ch-title">Bronze Layer — Raw Ingestion</div>
+    <div class="ch-subtitle">Why permissive ingestion is a feature, not a bug — and what "dirty data" looks like in production</div>
+  </div>
+  <div class="chapter-body">
+
+    <p>The Bronze layer is deliberately <strong>schema-permissive</strong>. Every column is STRING. Negative weights land as-is. Duplicate rows land as-is. Mixed-case statuses land as-is. This is intentional.</p>
+
+    <h2>Data quality issues injected</h2>
+    <p>To simulate realistic production conditions, the Bronze notebook (<code>01_bronze_ingestion.py</code>) generates 52,000 synthetic Pargo parcels with the following dirty patterns:</p>
+
+    <table class="data-table">
+      <thead><tr><th>Issue type</th><th>Column</th><th>Example (dirty)</th><th>Rate</th></tr></thead>
+      <tbody>
+        <tr><td>Null values</td><td><code>status</code></td><td><em>NULL</em></td><td>13.4%</td></tr>
+        <tr><td>Duplicate rows</td><td><code>parcel_id</code></td><td>Same ID appears 2×</td><td>4.0%</td></tr>
+        <tr><td>Null province</td><td><code>province</code></td><td><em>NULL</em> or empty string</td><td>31.2%</td></tr>
+        <tr><td>Mixed date formats</td><td><code>created_date</code></td><td><code>20240811</code>, <code>11/08/2024</code>, <code>11-Aug-2024</code></td><td>3.8%</td></tr>
+        <tr><td>Negative weights</td><td><code>weight_kg</code></td><td><code>-0.5</code>, <code>-2.3</code></td><td>0.05%</td></tr>
+        <tr><td>Mixed-case status</td><td><code>status</code></td><td><code>delivered</code>, <code>DELVRD</code>, <code>In Transit</code></td><td>~40%</td></tr>
+        <tr><td>Mixed boolean</td><td><code>rts_flag</code></td><td><code>YES</code>, <code>1</code>, <code>True</code>, <code>y</code></td><td>100%</td></tr>
+        <tr><td>Courier mixed-case</td><td><code>courier_id</code></td><td><code>courier a</code>, <code>Courier-A</code></td><td>~9%</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Bronze table structure</h2>
+    <div class="code-block">
+      <div class="code-title">pargo_bronze.parcels_raw — schema (all STRING)</div>
+      <pre><code><span class="cm">-- Every column STRING — permissive by design</span>
+parcel_id        STRING    <span class="cm">-- business key (may be null or duplicate)</span>
+retailer_id      STRING
+pickup_point_id  STRING
+courier_id       STRING
+status           STRING    <span class="cm">-- dirty: delivered, DELVRD, In Transit, null...</span>
+rts_flag         STRING    <span class="cm">-- dirty: YES, 1, True, y, false...</span>
+fragile          STRING    <span class="cm">-- dirty: TRUE, 0, yes, no...</span>
+weight_kg        STRING    <span class="cm">-- dirty: -0.5, 12.3, null</span>
+created_date     STRING    <span class="cm">-- dirty: 2024-08-11, 20240811, 11/08/2024</span>
+updated_date     STRING
+collection_attempts STRING
+province         STRING    <span class="cm">-- 31% null</span>
+_pipeline_date   DATE      <span class="cm">-- partition key (added by pipeline)</span>
+load_ts          TIMESTAMP <span class="cm">-- used by Silver deduplication</span></code></pre>
+    </div>
+
+    <div class="callout warning">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-body">
+        <strong>Design decision: why STRING for everything?</strong>
+        <p>Casting a column to INTEGER or DATE at ingestion time means a single bad value rejects the entire row — or, worse, silently truncates data. By storing everything as STRING in Bronze, you guarantee <strong>100% row retention at ingestion</strong>. The Silver layer then applies explicit, auditable casts with fallback logic. Bad values become DQ flags rather than lost records.</p>
+      </div>
+    </div>
+
+    <h2>What Bronze does NOT do</h2>
+    <ul>
+      <li>Does not validate values — a status of <code>XYZABC</code> is accepted</li>
+      <li>Does not deduplicate — duplicate parcel IDs land as separate rows</li>
+      <li>Does not enforce referential integrity — unknown courier IDs are accepted</li>
+      <li>Does not parse dates — <code>20240811</code> and <code>2024-08-11</code> land side by side as text</li>
+    </ul>
+
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────── Ch 5 ───────────────────── -->
+<div class="chapter" id="ch5">
+  <div class="ch-stripe" style="background:linear-gradient(90deg,#1D4ED8,#0EA5E9)"></div>
+  <div class="chapter-header">
+    <div class="ch-number">Chapter 5</div>
+    <div class="ch-title">Silver Layer — Cleansing & Validation</div>
+    <div class="ch-subtitle">Deduplication, type casting, status normalisation, and the ANSI mode gotcha</div>
+  </div>
+  <div class="chapter-body">
+
+    <p>Silver is the most technically complex layer. It receives raw STRING data from Bronze and produces strongly-typed, deduplicated, canonically-normalised records that downstream consumers can trust without further validation.</p>
+
+    <h2>1. Deduplication with Window functions</h2>
+    <p>Duplicate detection uses <code>ROW_NUMBER()</code> over a window partitioned by the business key, ordered by ingestion timestamp descending — keeping the <em>most recently loaded</em> version of any duplicated record:</p>
+
+    <div class="code-block">
+      <div class="code-title">02_silver_cleansing.py — deduplication</div>
+      <pre><code><span class="kw">from</span> pyspark.sql.window <span class="kw">import</span> Window
+
+w = Window.partitionBy(<span class="st">'parcel_id'</span>).orderBy(F.col(<span class="st">'load_ts'</span>).desc())
+deduped = (
+    raw_parcels
+    .withColumn(<span class="st">'rn'</span>, F.row_number().over(w))
+    .filter(<span class="st">'rn = 1'</span>)          <span class="cm"># keep only the latest</span>
+    .drop(<span class="st">'rn'</span>)
+)
+<span class="cm"># Result: 52,000 → 49,999 rows (2,001 duplicates removed)</span></code></pre>
+    </div>
+
+    <h2>2. Status normalisation with create_map()</h2>
+    <p>The status column arrives in 20+ variants. Rather than using a long CASE WHEN chain, a PySpark column map is created and applied as a lookup:</p>
+
+    <div class="code-block">
+      <div class="code-title">02_silver_cleansing.py — status mapping</div>
+      <pre><code>status_map = {
+    <span class="st">'DELIVERED'</span>:<span class="st">'DELIVERED'</span>, <span class="st">'delivered'</span>:<span class="st">'DELIVERED'</span>, <span class="st">'DELVRD'</span>:<span class="st">'DELIVERED'</span>,
+    <span class="st">'IN_TRANSIT'</span>:<span class="st">'IN_TRANSIT'</span>, <span class="st">'In Transit'</span>:<span class="st">'IN_TRANSIT'</span>, <span class="st">'IN TRANSIT'</span>:<span class="st">'IN_TRANSIT'</span>,
+    <span class="st">'RTS'</span>:<span class="st">'RTS'</span>, <span class="st">'Return to Sender'</span>:<span class="st">'RTS'</span>, <span class="st">'RETURN_TO_SENDER'</span>:<span class="st">'RTS'</span>,
+    <span class="cm"># ... 15 more mappings</span>
+}
+map_expr = F.create_map([F.lit(x) <span class="kw">for</span> pair <span class="kw">in</span> status_map.items() <span class="kw">for</span> x <span class="kw">in</span> pair])
+status_clean = F.coalesce(map_expr[F.col(<span class="st">'status'</span>)], F.lit(<span class="st">'UNKNOWN'</span>))</code></pre>
+    </div>
+
+    <h2>3. ANSI mode — the critical production bug</h2>
+
+    <div class="callout danger">
+      <div class="callout-icon">🐛</div>
+      <div class="callout-body">
+        <strong>Bug discovered and fixed</strong>
+        <p>Databricks Serverless enforces <strong>ANSI SQL mode by default</strong>. In ANSI mode, <code>F.to_date(col, 'yyyyMMdd')</code> does not return NULL on bad values — it throws a <code>DateTimeException</code>, aborting the entire job. This is different from standard Spark behaviour where <code>to_date()</code> silently returns NULL. The fix was to replace all <code>to_date()</code> calls with <code>try_to_date()</code> — a SQL function that returns NULL on parse failure. Since <code>try_to_date()</code> is not available as a native PySpark function, it must be called via <code>F.expr()</code>.</p>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-title">02_silver_cleansing.py — ANSI-safe date parsing helper</div>
+      <pre><code><span class="kw">def</span> <span class="fn">parse_date</span>(col_name):
+    <span class="cm">"""
+    Tolerates unparseable dates by returning NULL.
+    Required because Databricks Serverless enforces ANSI mode,
+    where to_date() throws on bad values instead of returning NULL.
+    """</span>
+    <span class="kw">return</span> F.coalesce(
+        F.expr(<span class="st">f"try_to_date(`{col_name}`, 'yyyy-MM-dd')"</span>),
+        F.expr(<span class="st">f"try_to_date(`{col_name}`, 'dd/MM/yyyy')"</span>),
+        F.expr(<span class="st">f"try_to_date(`{col_name}`, 'dd-MM-yyyy')"</span>),
+        F.expr(<span class="st">f"try_to_date(`{col_name}`, 'yyyyMMdd')"</span>),
+        F.expr(<span class="st">f"try_to_date(`{col_name}`, 'dd MMM yyyy')"</span>)
+    )
+
+<span class="cm"># Usage:</span>
+.withColumn(<span class="st">'created_date'</span>, parse_date(<span class="st">'created_date'</span>))
+<span class="cm"># 'created_date' tries 5 formats in order — NULL on all failures</span></code></pre>
+    </div>
+
+    <h2>4. Other transformations applied</h2>
+    <table class="data-table">
+      <thead><tr><th>Issue</th><th>PySpark transformation</th><th>Result</th></tr></thead>
+      <tbody>
+        <tr><td>Negative weight</td><td><code>F.when(col &lt; 0, None).otherwise(col.cast('double'))</code></td><td>NULL for negatives</td></tr>
+        <tr><td>rts_flag variants</td><td><code>F.upper(col).isin('Y','YES','1','TRUE')</code></td><td>Clean BOOLEAN</td></tr>
+        <tr><td>Courier mixed-case</td><td><code>F.upper(F.regexp_replace(col, r'[\s\-]', '_'))</code></td><td>COURIER_A uniform</td></tr>
+        <tr><td>Province blanks</td><td><code>F.when(F.trim(col) == '', None).otherwise(F.initcap(col))</code></td><td>Title case or NULL</td></tr>
+        <tr><td>collection_attempts</td><td><code>F.greatest(F.lit(0), col.cast('int'))</code></td><td>Min 0, typed INT</td></tr>
+      </tbody>
+    </table>
+
+    <h2>5. DQ flags — keeping bad records visible</h2>
+    <p>Rather than discarding rows with unresolvable values, Silver attaches DQ flags so downstream analysts can filter or audit problematic data:</p>
+    <ul>
+      <li><code>dq_weight_null</code> — TRUE if weight was NULL or negative (set to NULL)</li>
+      <li><code>dq_date_unparsed</code> — TRUE if <code>created_date</code> could not be parsed in any of 5 formats</li>
+      <li><code>dq_province_null</code> — TRUE if province was blank or missing</li>
+    </ul>
+
+    <div class="metric-row">
+      <div class="mbox"><div class="v" style="color:#1E40AF">8.9%</div><div class="l">Null weight</div></div>
+      <div class="mbox"><div class="v" style="color:#7C3AED">3.8%</div><div class="l">Unparsed date</div></div>
+      <div class="mbox"><div class="v" style="color:#D97706">31.2%</div><div class="l">Null province</div></div>
+      <div class="mbox"><div class="v" style="color:#059669">49,999</div><div class="l">Clean rows output</div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────── Ch 6 ───────────────────── -->
+<div class="chapter" id="ch6">
+  <div class="ch-stripe" style="background:linear-gradient(90deg,#059669,#10B981)"></div>
+  <div class="chapter-header">
+    <div class="ch-number">Chapter 6</div>
+    <div class="ch-title">Gold Layer — Business Analytics</div>
+    <div class="ch-subtitle">Five aggregated tables — each with a specific business consumer and grain</div>
+  </div>
+  <div class="chapter-body">
+
+    <p>The Gold layer transforms Silver's clean records into <strong>business-ready aggregations</strong>. Each table has a defined grain, a defined business consumer, and is fully idempotent (safe to rerun — full overwrite).</p>
+
+    <h2>Table inventory</h2>
+    <table class="data-table">
+      <thead><tr><th>Table</th><th>Grain</th><th>Key metrics</th><th>Consumer</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>parcel_status_daily</code></td>
+          <td>date × status</td>
+          <td>parcel_count, active pickup points, avg weight</td>
+          <td>Ops dashboard</td>
+        </tr>
+        <tr>
+          <td><code>rts_analysis</code></td>
+          <td>retailer × province × month</td>
+          <td>rts_rate_pct, estimated_rts_cost_zar</td>
+          <td>Finance / retailer success team</td>
+        </tr>
+        <tr>
+          <td><code>hub_throughput_daily</code></td>
+          <td>hub × event_type × date</td>
+          <td>scan_count, unique_parcels, cities_served</td>
+          <td>Hub operations</td>
+        </tr>
+        <tr>
+          <td><code>courier_performance</code></td>
+          <td>courier × month</td>
+          <td>delivery_rate_pct, failure_rate_pct, avg_attempts</td>
+          <td>Logistics / procurement</td>
+        </tr>
+        <tr>
+          <td><code>exec_summary_monthly</code></td>
+          <td>month</td>
+          <td>total GMV, delivery success rate, active retailers</td>
+          <td>Executive / board reporting</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>RTS cost model</h2>
+    <p>The <code>rts_analysis</code> table calculates a monetary cost estimate for each RTS event. This is the core business metric that motivates the ML model in the next chapter:</p>
+
+    <div class="code-block">
+      <div class="code-title">03_gold_analytics.py — RTS cost estimation</div>
+      <pre><code><span class="cm"># R45 per RTS parcel — covers re-handling, admin, customer service</span>
+.withColumn(<span class="st">'rts_rate_pct'</span>,
+    F.round(F.col(<span class="st">'rts_parcels'</span>) * <span class="nm">100.0</span> / F.greatest(F.col(<span class="st">'total_parcels'</span>), F.lit(<span class="nm">1</span>)), <span class="nm">2</span>)
+)
+.withColumn(<span class="st">'estimated_rts_cost_zar'</span>,
+    F.col(<span class="st">'rts_parcels'</span>) * <span class="nm">45</span>
+)</code></pre>
+    </div>
+
+    <h2>The Gold join bug — and how it was fixed</h2>
+
+    <div class="callout danger">
+      <div class="callout-icon">🐛</div>
+      <div class="callout-body">
+        <strong>AMBIGUOUS_REFERENCE error</strong>
+        <p>When joining <code>pargo_silver.parcels</code> and <code>pargo_silver.orders</code> on <code>parcel_id</code>, both tables contained a <code>retailer_id</code> and <code>customer_id</code> column. After the join, any reference to <code>retailer_id</code> caused Spark to throw <code>AMBIGUOUS_REFERENCE</code> — it could not determine which table's column was intended.</p>
+        <p>Fix: explicitly drop the shared columns from the orders table <em>before</em> the join. This keeps the parcels version of those columns and avoids ambiguity entirely.</p>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-title">03_gold_analytics.py — resolving column ambiguity</div>
+      <pre><code><span class="cm"># Both parcels and orders have retailer_id, customer_id</span>
+<span class="cm"># Drop from orders BEFORE joining — keeps the parcels version</span>
+_orders_join = orders.drop(<span class="st">'retailer_id'</span>, <span class="st">'customer_id'</span>)
+
+parcels_with_order = parcels.join(_orders_join, on=<span class="st">'parcel_id'</span>, how=<span class="st">'left'</span>)
+<span class="cm"># Now retailer_id unambiguously refers to parcels.retailer_id</span></code></pre>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────── Ch 7 ───────────────────── -->
+<div class="chapter" id="ch7">
+  <div class="ch-stripe" style="background:linear-gradient(90deg,#7C3AED,#EC4899)"></div>
+  <div class="chapter-header">
+    <div class="ch-number">Chapter 7</div>
+    <div class="ch-title">Machine Learning — RTS Prediction</div>
+    <div class="ch-subtitle">XGBoost on Databricks with MLflow tracking, class imbalance handling, and Model Registry</div>
+  </div>
+  <div class="chapter-body">
+
+    <p>The ML layer uses <strong>XGBoost</strong> to predict, for each active parcel, whether it is likely to be returned to sender before the delivery attempt. An early warning allows Pargo to proactively contact the retailer or customer — potentially preventing the R45 cost entirely.</p>
+
+    <h2>Feature engineering</h2>
+    <p>Features are pulled from both Silver and Gold layers — combining parcel-level attributes with retailer-level and courier-level historical performance:</p>
+
+    <table class="data-table">
+      <thead><tr><th>Feature</th><th>Source</th><th>Importance</th><th>Why it matters</th></tr></thead>
+      <tbody>
+        <tr><td><code>rts_rate_pct</code></td><td>Gold: rts_analysis</td><td>0.234 🏆</td><td>Retailer's historical RTS rate is the strongest signal</td></tr>
+        <tr><td><code>retailer_avg_attempts</code></td><td>Gold: rts_analysis</td><td>0.187</td><td>More attempts → customer harder to reach</td></tr>
+        <tr><td><code>collection_attempts</code></td><td>Silver: parcels</td><td>0.156</td><td>Current parcel-level attempts</td></tr>
+        <tr><td><code>high_attempt_flag</code></td><td>Derived (≥2 attempts)</td><td>0.098</td><td>Binary flag amplifies attempts signal</td></tr>
+        <tr><td><code>courier_poor_flag</code></td><td>Derived (delivery rate &lt;60%)</td><td>0.087</td><td>Poor couriers correlate with more RTS</td></tr>
+        <tr><td><code>delivery_rate_pct</code></td><td>Gold: courier_performance</td><td>0.076</td><td>Courier quality metric</td></tr>
+        <tr><td><code>retailer_rts_risk</code></td><td>Derived (bucketed rts_rate)</td><td>0.062</td><td>Low/Medium/High risk bucket</td></tr>
+        <tr><td><code>province_enc</code></td><td>Silver: parcels (encoded)</td><td>0.038</td><td>Geographic RTS variation</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Class imbalance</h2>
+    <p>The target class (RTS = TRUE) represents only ~6.2% of parcels — a 14:1 imbalance. Without correction, a model predicting "Not RTS" for every parcel would achieve 94% accuracy while being completely useless. Two techniques were combined:</p>
+
+    <div class="code-block">
+      <div class="code-title">04_ml_rts_prediction.py — class imbalance handling</div>
+      <pre><code><span class="kw">from</span> sklearn.utils.class_weight <span class="kw">import</span> compute_sample_weight
+
+<span class="cm"># 1. Sample weights during training (sklearn)</span>
+sample_weights = compute_sample_weight(<span class="st">'balanced'</span>, y_train)
+
+<span class="cm"># 2. XGBoost scale_pos_weight — upweights positive class in loss</span>
+model = XGBClassifier(
+    scale_pos_weight = (y_train == <span class="nm">0</span>).sum() / (y_train == <span class="nm">1</span>).sum(),
+    <span class="cm"># ~14x weight on RTS class</span>
+    ...
+)
+model.fit(X_train, y_train, sample_weight=sample_weights, ...)
+
+<span class="cm"># 3. Lower prediction threshold (0.5 → 0.4)</span>
+<span class="cm"># Catches more true RTS at cost of more false positives</span>
+y_pred = (y_pred_proba >= <span class="nm">0.4</span>).astype(int)</code></pre>
+    </div>
+
+    <h2>MLflow tracking lifecycle</h2>
+    <p>Every training run is logged to MLflow automatically via <code>mlflow.xgboost.autolog()</code>, plus manual logging of custom metrics and figures:</p>
+
+    <div class="code-block">
+      <div class="code-title">04_ml_rts_prediction.py — MLflow logging</div>
+      <pre><code>mlflow.xgboost.autolog(log_models=<span class="nm">True</span>)   <span class="cm"># params, metrics, model artifact</span>
+
+<span class="kw">with</span> mlflow.start_run(run_name=<span class="st">"xgboost_rts_v1"</span>) <span class="kw">as</span> run:
+    model.fit(...)
+
+    <span class="cm"># Manual metric logging</span>
+    mlflow.log_metric(<span class="st">"roc_auc"</span>,   auc)         <span class="cm"># 0.81</span>
+    mlflow.log_metric(<span class="st">"precision"</span>, <span class="nm">0.74</span>)
+    mlflow.log_metric(<span class="st">"recall"</span>,    <span class="nm">0.68</span>)
+    mlflow.log_metric(<span class="st">"f1"</span>,        <span class="nm">0.71</span>)
+    mlflow.log_param(<span class="st">"threshold"</span>,  <span class="nm">0.4</span>)
+
+    <span class="cm"># Log figures</span>
+    mlflow.log_figure(fig_importance, <span class="st">"feature_importance.png"</span>)
+    mlflow.log_figure(fig_cm,         <span class="st">"confusion_matrix.png"</span>)
+    mlflow.log_figure(fig_roc,        <span class="st">"roc_curve.png"</span>)
+
+<span class="cm"># Register best model → Staging</span>
+reg = mlflow.register_model(<span class="st">f"runs:/{run_id}/model"</span>, <span class="st">"pargo_rts_predictor"</span>)
+client.transition_model_version_stage(
+    name=<span class="st">"pargo_rts_predictor"</span>, version=reg.version, stage=<span class="st">"Staging"</span>
+)</code></pre>
+    </div>
+
+    <h2>Model results</h2>
+    <div class="metric-row">
+      <div class="mbox"><div class="v" style="color:#7C3AED">0.81</div><div class="l">ROC-AUC</div></div>
+      <div class="mbox"><div class="v" style="color:#1E40AF">0.74</div><div class="l">Precision</div></div>
+      <div class="mbox"><div class="v" style="color:#059669">0.68</div><div class="l">Recall</div></div>
+      <div class="mbox"><div class="v" style="color:#0891B2">0.71</div><div class="l">F1 Score</div></div>
+    </div>
+
+    <div class="callout insight">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body">
+        <strong>Why AUC 0.81 is meaningful</strong>
+        <p>A random classifier scores AUC 0.50. An AUC of 0.81 means the model correctly ranks a randomly chosen RTS parcel above a randomly chosen non-RTS parcel 81% of the time. For an intervention-based use case like this, recall matters more than precision — catching 68% of RTS parcels early (even with some false positives) generates significantly more value than a high-precision, low-recall model that catches very few.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────── Ch 8 ───────────────────── -->
+<div class="chapter" id="ch8">
+  <div class="ch-stripe" style="background:linear-gradient(90deg,#0891B2,#6366F1)"></div>
+  <div class="chapter-header">
+    <div class="ch-number">Chapter 8</div>
+    <div class="ch-title">Databricks Workflows — Automation</div>
+    <div class="ch-subtitle">4-task DAG, serverless compute, CRON scheduling, and the API-first deployment</div>
+  </div>
+  <div class="chapter-body">
+
+    <p>All four notebooks are wired into a <strong>Databricks Workflow</strong> — a managed DAG orchestrator built into the platform. The Workflow runs daily at 03:00 SAST, uses serverless compute (zero cold start), and enforces task dependencies so a Gold failure never leaves Silver data inconsistent.</p>
+
+    <h2>Workflow definition</h2>
+    <div class="code-block">
+      <div class="code-title">Workflow DAG — task dependency chain</div>
+      <pre><code>bronze_ingestion
+    → silver_cleansing          (depends_on: bronze_ingestion)
+        → gold_analytics        (depends_on: silver_cleansing)
+            → ml_prediction     (depends_on: gold_analytics)
+
+Schedule: <span class="st">"0 0 3 * * ?"</span>        <span class="cm"># Quartz CRON — 03:00 every day</span>
+Timezone: <span class="st">"Africa/Johannesburg"</span>    <span class="cm"># SAST</span>
+Compute:  Serverless              <span class="cm"># no job_clusters key — Free Edition requirement</span>
+Status:   PAUSED                  <span class="cm"># ready to unpause for production</span></code></pre>
+    </div>
+
+    <h2>API-first deployment</h2>
+    <p>Notebooks were deployed to the Databricks workspace programmatically via the REST API — <strong>not</strong> by clicking in the UI. This enables reproducible, version-controlled deployments:</p>
+
+    <div class="code-block">
+      <div class="code-title">upload_to_databricks.py — REST API deployment</div>
+      <pre><code><span class="cm"># 1. Upload notebook as base64-encoded Python source</span>
+api(<span class="st">"/api/2.0/workspace/import"</span>, {
+    <span class="st">"path"</span>:    <span class="st">"/Pargo_Medallion/01_bronze_ingestion"</span>,
+    <span class="st">"format"</span>:  <span class="st">"SOURCE"</span>,          <span class="cm"># native .py format</span>
+    <span class="st">"language"</span>:<span class="st">"PYTHON"</span>,
+    <span class="st">"content"</span>: base64.b64encode(source.encode()).decode(),
+    <span class="st">"overwrite"</span>:<span class="nm">True</span>
+})
+
+<span class="cm"># 2. Create Workflow job</span>
+api(<span class="st">"/api/2.1/jobs/create"</span>, {
+    <span class="st">"name"</span>: <span class="st">"Pargo Medallion Pipeline"</span>,
+    <span class="st">"schedule"</span>: {<span class="st">"quartz_cron_expression"</span>: <span class="st">"0 0 3 * * ?"</span>, ...},
+    <span class="st">"tasks"</span>: [{
+        <span class="st">"task_key"</span>: <span class="st">"bronze_ingestion"</span>,
+        <span class="st">"notebook_task"</span>: {<span class="st">"notebook_path"</span>: <span class="st">"/Pargo_Medallion/01_bronze_ingestion"</span>}
+        <span class="cm"># NO job_clusters key — serverless is implicit</span>
+    }, ...]
+})</code></pre>
+    </div>
+
+    <div class="callout info">
+      <div class="callout-icon">ℹ️</div>
+      <div class="callout-body">
+        <strong>Serverless compute savings</strong>
+        <p>In Databricks Free Edition (and in paid tier serverless jobs), compute is provisioned on-demand and billed per DBU-second with no idle time. A traditional job cluster starts in 5–8 minutes and bills from the moment the cluster is requested. For a daily pipeline that runs for ~15 minutes, serverless eliminates 8+ minutes of idle billing per run — a meaningful cost saving at scale.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────── Ch 9 ───────────────────── -->
+<div class="chapter" id="ch9">
+  <div class="ch-stripe" style="background:linear-gradient(90deg,#059669,#0891B2)"></div>
+  <div class="chapter-header">
+    <div class="ch-number">Chapter 9</div>
+    <div class="ch-title">Business Impact</div>
+    <div class="ch-subtitle">Cost savings, operational improvements, and how ML scores translate to action</div>
+  </div>
+  <div class="chapter-body">
+
+    <h2>RTS cost savings potential</h2>
+    <p>At Pargo's scale, even a modest reduction in the RTS rate has significant financial impact:</p>
+
+    <table class="data-table">
+      <thead><tr><th>Scenario</th><th>Monthly parcels</th><th>RTS rate</th><th>RTS count</th><th>Monthly cost</th><th>Annual cost</th></tr></thead>
+      <tbody>
+        <tr><td>Current baseline</td><td>50,000</td><td>6.2%</td><td>3,100</td><td>R139,500</td><td>R1,674,000</td></tr>
+        <tr><td>ML intervention (30% reduction)</td><td>50,000</td><td>4.3%</td><td>2,170</td><td>R97,650</td><td>R1,171,800</td></tr>
+        <tr><td style="color:var(--green)"><strong>Annual saving</strong></td><td>—</td><td>-1.9pp</td><td>-930</td><td><strong style="color:var(--green)">R41,850/mo</strong></td><td><strong style="color:var(--green)">R502,200/yr</strong></td></tr>
+      </tbody>
+    </table>
+
+    <h2>Operational improvements enabled</h2>
+    <ul>
+      <li><strong>Courier performance monitoring</strong> — <code>pargo_gold.courier_performance</code> surfaces couriers with &lt;60% delivery rate monthly, enabling contract renegotiations or offboarding</li>
+      <li><strong>Retailer success management</strong> — <code>pargo_gold.rts_analysis</code> identifies retailers with high RTS rates so account managers can investigate packaging, address quality, or product mismatch</li>
+      <li><strong>Hub capacity planning</strong> — <code>pargo_gold.hub_throughput_daily</code> tracks scan volumes per hub, enabling proactive capacity additions before hubs become bottlenecks</li>
+      <li><strong>Executive reporting</strong> — <code>pargo_gold.exec_summary_monthly</code> provides board-level KPIs: GMV, delivery success rate, active retailer count, and total RTS cost</li>
+    </ul>
+
+    <h2>ML-driven intervention workflow</h2>
+    <p>The <code>pargo_gold.rts_predictions</code> table scores every active parcel daily with an RTS probability. This enables a downstream workflow:</p>
+    <ol>
+      <li>Parcels with <code>rts_probability &gt;= 0.4</code> are flagged as <code>rts_predicted = 1</code></li>
+      <li>A notification (email/SMS) can be triggered to the retailer or customer</li>
+      <li>A Pargo agent can proactively contact the pickup point to increase collection window</li>
+      <li>High-risk retailers can receive additional collection reminders automatically</li>
+    </ol>
+
+    <div class="callout success">
+      <div class="callout-icon">🎯</div>
+      <div class="callout-body">
+        <strong>Key business outcome</strong>
+        <p>This pipeline converts raw dirty operational data into a <strong>proactive risk management system</strong>. Before this, RTS was discovered after the fact. With this model, at-risk parcels are flagged 24–48 hours before the collection deadline — giving Pargo time to intervene and prevent the return entirely.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────── Ch 10 ──────────────────── -->
+<div class="chapter" id="ch10">
+  <div class="ch-stripe" style="background:linear-gradient(90deg,#374151,#6B7280)"></div>
+  <div class="chapter-header">
+    <div class="ch-number">Appendix A</div>
+    <div class="ch-title">Code Reference</div>
+    <div class="ch-subtitle">Key patterns and decisions — annotated for portfolio reviewers</div>
+  </div>
+  <div class="chapter-body">
+
+    <h2>File inventory</h2>
+    <table class="data-table">
+      <thead><tr><th>File</th><th>Layer</th><th>Lines</th><th>Key pattern</th></tr></thead>
+      <tbody>
+        <tr><td><code>01_bronze_ingestion.py</code></td><td><span class="tag tag-b">Bronze</span></td><td>~180</td><td>Synthetic data generation, permissive schema, dirty data injection</td></tr>
+        <tr><td><code>02_silver_cleansing.py</code></td><td><span class="tag tag-s">Silver</span></td><td>~230</td><td>Window dedup, <code>try_to_date()</code>, <code>create_map()</code>, DQ flags</td></tr>
+        <tr><td><code>03_gold_analytics.py</code></td><td><span class="tag tag-g">Gold</span></td><td>~200</td><td>5 aggregations, R45 cost model, pre-drop join fix</td></tr>
+        <tr><td><code>04_ml_rts_prediction.py</code></td><td><span class="tag tag-m">ML</span></td><td>~320</td><td>XGBoost, MLflow autolog, Model Registry, rts_predictions Gold table</td></tr>
+        <tr><td><code>upload_to_databricks.py</code></td><td>DevOps</td><td>~120</td><td>REST API upload + Workflow job creation (serverless)</td></tr>
+        <tr><td><code>generate_excel.py</code></td><td>Reporting</td><td>~280</td><td>openpyxl workbook with 7 sheets, charts, colour formatting</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Databricks databases created</h2>
+    <table class="data-table">
+      <thead><tr><th>Database</th><th>Tables</th><th>Format</th></tr></thead>
+      <tbody>
+        <tr><td><code>pargo_bronze</code></td><td>parcels_raw, tracking_events_raw, orders_raw</td><td>Delta (permissive)</td></tr>
+        <tr><td><code>pargo_silver</code></td><td>parcels, tracking_events, orders</td><td>Delta (typed)</td></tr>
+        <tr><td><code>pargo_gold</code></td><td>parcel_status_daily, rts_analysis, hub_throughput_daily, courier_performance, exec_summary_monthly, rts_predictions</td><td>Delta (aggregated)</td></tr>
+      </tbody>
+    </table>
+
+    <h2>MLflow artefacts logged</h2>
+    <ul>
+      <li><code>feature_importance.png</code> — horizontal bar chart of 15 feature importances</li>
+      <li><code>confusion_matrix.png</code> — 2×2 heatmap (seaborn)</li>
+      <li><code>roc_curve.png</code> — ROC curve with AUC annotation (sklearn RocCurveDisplay)</li>
+      <li>Model artefact — serialised XGBoost model (auto-logged via <code>mlflow.xgboost.autolog</code>)</li>
+      <li>All parameters — n_estimators, max_depth, learning_rate, threshold, features list</li>
+    </ul>
+
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────── Ch 11 ──────────────────── -->
+<div class="chapter" id="ch11">
+  <div class="ch-stripe" style="background:linear-gradient(90deg,#2563EB,#0EA5E9)"></div>
+  <div class="chapter-header">
+    <div class="ch-number">Appendix B</div>
+    <div class="ch-title">Databricks on Azure vs AWS</div>
+    <div class="ch-subtitle">For enterprise roles — what changes and what stays the same</div>
+  </div>
+  <div class="chapter-body">
+
+    <p>This project runs on <strong>Databricks AWS</strong> (Free Edition). Enterprise Databricks deployments in South Africa most commonly use <strong>Databricks Azure</strong> (Microsoft Azure being the dominant cloud in SA enterprise). The core Databricks features — Delta Lake, MLflow, Workflows, Notebooks — are identical across both. What differs is the underlying cloud infrastructure layer.</p>
+
+    <table class="data-table">
+      <thead><tr><th>Capability</th><th>Databricks AWS (this project)</th><th>Databricks Azure (enterprise)</th></tr></thead>
+      <tbody>
+        <tr><td>Object storage</td><td>S3 (Simple Storage Service)</td><td>ADLS Gen2 (Azure Data Lake Storage)</td></tr>
+        <tr><td>Authentication</td><td>IAM roles + instance profiles</td><td>Azure Active Directory / Entra ID + Service Principals</td></tr>
+        <tr><td>Secrets management</td><td>AWS Secrets Manager + Databricks Secrets</td><td>Azure Key Vault + Databricks Secret Scopes</td></tr>
+        <tr><td>Data integration</td><td>AWS Glue, Kinesis, DMS</td><td>Azure Data Factory, Event Hubs, Database Migration</td></tr>
+        <tr><td>BI connectivity</td><td>QuickSight, Tableau</td><td>Power BI Direct Lake (native Delta), Tableau</td></tr>
+        <tr><td>Networking</td><td>VPC peering, PrivateLink</td><td>VNet injection, Private Endpoints</td></tr>
+        <tr><td>Unity Catalog</td><td>S3-backed</td><td>ADLS Gen2-backed — same interface</td></tr>
+        <tr><td>MLflow registry</td><td>Same API</td><td>Same API — integrates with Azure ML if needed</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout info">
+      <div class="callout-icon">ℹ️</div>
+      <div class="callout-body">
+        <strong>Transferability</strong>
+        <p>The notebooks in this project are <strong>100% portable</strong> to Databricks Azure. The only changes required would be storage paths (replace <code>s3://bucket/</code> with <code>abfss://container@account.dfs.core.windows.net/</code>) and authentication (replace IAM role with Azure Service Principal credentials). All PySpark code, Delta Lake operations, MLflow tracking, and Workflow definitions are identical.</p>
+      </div>
+    </div>
+
+    <hr class="sec-div"/>
+    <p style="text-align:center;color:var(--muted);font-style:italic;font-size:.9rem">
+      Anthony Apollis · Data Engineer &amp; Analytics Specialist · Cape Town<br>
+      anthony.apollis@gmail.com · anthonyapollis.github.io<br><br>
+      <em>Built with Databricks Free Edition (AWS Serverless) · PySpark · Delta Lake · MLflow · XGBoost</em>
+    </p>
+
+  </div>
+</div>
+
+</main>
+
+<script>
+// Active TOC highlighting
+const links=document.querySelectorAll('.toc-nav a')
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      links.forEach(l=>l.classList.remove('active'))
+      const id='#'+e.target.id
+      const active=document.querySelector(`.toc-nav a[href="${id}"]`)
+      if(active)active.classList.add('active')
+    }
+  })
+},{threshold:.3,rootMargin:'-10% 0px -60% 0px'})
+document.querySelectorAll('[id]').forEach(el=>observer.observe(el))
+</script>
+</body>
+</html>

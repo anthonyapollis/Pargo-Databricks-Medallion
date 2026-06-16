@@ -1,4 +1,7 @@
-# Pargo Parcels — Databricks Medallion Analytics Platform
+# Pargo Parcel Intelligence Platform — Databricks Medallion Pipeline
+
+> **Part of the Pargo Parcel Intelligence Platform** — the Databricks Medallion pipeline component.
+> See also: [PargoParcels-Portfolio](https://github.com/anthonyapollis/PargoParcels-Portfolio) (Snowflake + dbt analytics + 15 ML models).
 
 End-to-end serverless data engineering pipeline built on **Databricks Free Edition (AWS)**.
 Ingests dirty parcel data, cleanses it through a medallion architecture, builds business KPIs in Gold, and trains an XGBoost RTS prediction model with MLflow tracking.
